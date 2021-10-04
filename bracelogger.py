@@ -16,18 +16,19 @@ def _get_message(record):
     """Implement logging.LogRecord.getMessage using brace-style string formatting"""
     msg = str(record.msg)
     args = record.args
-    if isinstance(args, Mapping):
-        # The logging module has a special case where if a LogRecord is
-        # constructed with a single dict as the arg it sets it as the args.
-        # This enables using key-based templating. For example:
-        # `logging.info("a:%(a)s, b:%(b)s", {"a": 1, "b": 2})`.
-        #
-        # For the moment this style of formatting is not supported by this
-        # module. It may be supported in the future by only doing it in cases
-        # where the message template also supports kwarg-based templating.
-        args = (args,)
 
-    if args:
+    # The logging module has a special case where if a LogRecord is constructed
+    # with a single non-empty dict to format into the message, that single dict
+    # is treated as the args instead of the first in a tuple of args.
+    # This is done to enable using key-based templating in log messages. Ex:
+    #     logging.info("a:%(a)s, b:%(b)s", {"a": 1, "b": 2})
+    #
+    # This case is handled here by splatting the dict in as kwargs to allow
+    # using key-based format strings, but also passing it as the first arg to
+    # preserve compatibility with index-based format strings.
+    if isinstance(args, Mapping):
+        msg = msg.format(args, **args)
+    elif args:
         msg = msg.format(*args)
     return msg
 

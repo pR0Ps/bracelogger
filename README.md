@@ -51,6 +51,22 @@ use the more advanced operations that the brace-style formatting can provide. Se
 for more details.
 
 
+Key-based formatting
+--------------------
+The logger from the standard library has a special case (introduced in [Python
+2.4](https://github.com/python/cpython/blob/2.4/Lib/logging/__init__.py#L214-L227)) where key-based
+formatting can be used when a single non-empty dictionary is passed into the log message like so:
+```python
+__log__.info("a:%(a)s, b:%(b)s", {"a": 1, "b": 2})
+```
+This is also supported when using brace-style formatting:
+```python
+# These both produce the same log message:
+__log__.info("a:{a}, b:{b}", {"a": 1, "b": 2})
+__log__.info("a:{0[a]}, b:{0[b]}", {"a": 1, "b": 2})
+```
+
+
 Compatibility with existing code and loggers
 --------------------------------------------
 This library will only enable brace-style formatting for loggers created by this module's
@@ -71,21 +87,8 @@ Converting existing code
 ------------------------
 Because there is no special syntax required, migrating existing logs to brace-style formatting is
 easy:
-1. Replace `logging.getLogger(name)` with `bracelogger.get_logger(name)`
-2. Change the log messages for the logger to use brace-style formatting (ex: change `%s` to `{}`)
-
-### Special case
-The logger from the standard library has a special case (introduced in [Python
-2.4](https://github.com/python/cpython/blob/2.4/Lib/logging/__init__.py#L214-L227)) where key-based
-formatting is used when a single dictionary is passed into the log message.
-```python
-logging.info("a:%(a)s, b:%(b)s", {"a": 1, "b": 2})
-```
-This library does not currently support this special case but there is an easy workaround - use
-brace-style formatting to access the keys like so:
-```python
-logging.info("a:{0[a]}, b:{0[b]}", {"a": 1, "b": 2})
-```
+1. Change loggers created with `logging.getLogger(name)` to use `bracelogger.get_logger(name)`
+2. Change the log messages for the loggers to use brace-style formatting (ex: change `%s` to `{}`)
 
 
 Tests
