@@ -28,7 +28,7 @@ jobs:
           - "3.7"
           - "3.8"
           - "3.9"
-          - "3.10-dev"  # TODO: change to "3.10" once released
+          - "3.10"
       fail-fast: false
     steps:
     - name: Checkout
