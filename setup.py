@@ -19,6 +19,9 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/pR0Ps/bracelogger",
+    project_urls={
+        "Source": "https://github.com/pR0Ps/bracelogger",
+    },
     license="LGPLv3",
     classifiers=[
         "Programming Language :: Python",
@@ -36,6 +39,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Intended Audience :: Developers",
@@ -43,6 +47,7 @@ setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     ],
+    python_requires=">=2.7",
     py_modules=["bracelogger"],
     extras_require={
         "tests": ["pytest", "pytest-cov"],
