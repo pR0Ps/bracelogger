@@ -121,12 +121,115 @@ def test_all_levels(caplog):
         assert record.message == TEMPLATE.format(*record.args)
 
 
+def test_wrapped_not_modified(caplog):
+    """Test that the same logger access from std and bracelogger use different formatting"""
+    caplog.set_level(logging.DEBUG)
+
+    l = bracelogger.get_logger("logger6")
+    std_l = logging.getLogger("logger6")
+
+    std_l.info("%s %s", 1, 2)
+    l.info("{} {}", 1, 2)
+
+    assert len(caplog.records) == 2
+    record1, record2 = caplog.records
+    assert record1.name == record2.name == "logger6"
+    assert record1.args == record2.args
+    assert record1.msg != record2.msg
+    assert record1.message == record2.message == "1 2"
+
+
+def test_instance():
+    """Test loggers are the proper class (and child loggers are as well)"""
+
+    std_l = logging.getLogger("logger7")
+    std_l_child = std_l.getChild("child")
+
+    l = bracelogger.get_logger("logger7")
+    l_child = l.getChild("child")
+
+    assert isinstance(std_l, logging.Logger)
+    assert not isinstance(std_l, bracelogger.BraceloggerMixin)
+    assert isinstance(l, logging.Logger)
+    assert isinstance(l, bracelogger.BraceloggerMixin)
+
+    assert isinstance(std_l_child, logging.Logger)
+    assert not isinstance(std_l_child, bracelogger.BraceloggerMixin)
+    assert isinstance(l_child, logging.Logger)
+    assert isinstance(l_child, bracelogger.BraceloggerMixin)
+
+
+def test_preserve_subclasses(caplog, monkeypatch):
+    """Test that braceloggers preserve the original class of the loggers/logrecords"""
+
+    class MyLogRecord(logging.LogRecord):
+        pass
+
+    class MyLogger(logging.Logger):
+        pass
+
+    monkeypatch.setattr("logging._loggerClass", MyLogger)
+    if sys.version_info >= (3, 2):
+        # doesn't exist until 3.2
+        monkeypatch.setattr("logging._logRecordFactory", MyLogRecord)
+
+    l = bracelogger.get_logger("logger8")
+    assert isinstance(l, MyLogger)
+    assert isinstance(l, logging.Logger)
+    assert isinstance(l, bracelogger.BraceloggerMixin)
+
+    std_l = logging.getLogger("logger8")
+    assert isinstance(std_l, logging.Logger)
+    assert isinstance(std_l, MyLogger)
+    assert not isinstance(std_l, bracelogger.BraceloggerMixin)
+
+    caplog.set_level(logging.INFO)
+    std_l.info("%s %s", 1, 2)
+    l.info("{} {}", 1, 2)
+
+    assert len(caplog.records) == 2
+    record_std, record_brace = caplog.records
+    if record_std.msg == "{} {}":
+        record_std, record_brace = record_brace, record_std
+
+    assert isinstance(record_std, logging.LogRecord)
+    if sys.version_info >= (3, 2):
+        assert isinstance(record_std, MyLogRecord)
+    assert not isinstance(record_std, bracelogger.BracelogRecordMixin)
+
+    assert isinstance(record_brace, logging.LogRecord)
+    if sys.version_info >= (3, 2):
+        assert isinstance(record_brace, MyLogRecord)
+    assert isinstance(record_brace, bracelogger.BracelogRecordMixin)
+
+
+def test_no_extra_attribute(caplog):
+
+    std_l = logging.getLogger("logger9")
+    l = bracelogger.get_logger("logger9")
+
+    caplog.set_level(logging.INFO)
+    std_l.info("%s %s", 1, 2)
+    l.info("{} {}", 1, 2)
+
+    assert len(caplog.records) == 2
+    record1, record2 = caplog.records
+
+    assert "getMessage" not in record1.__dict__
+    assert "getMessage" not in record2.__dict__
+
+    assert record1.name == record2.name == "logger9"
+    assert record1.msg != record2.msg
+    assert record1.message == record2.message == "1 2"
+
+
+@pytest.mark.xfail(reason="Pickling not supported with dynamically-created classes")
 def test_pickle_logrecord(caplog):
     """Test that the modified LogRecords can be [de]serialized using the pickle module"""
     caplog.set_level(logging.INFO)
 
-    bl = bracelogger.get_logger("logger6")
-    sl = logging.getLogger("logger7")
+    bl = bracelogger.get_logger("logger10")
+    sl = logging.getLogger("logger10")
 
     data = {"a": 1, "b": 2}
     TEMPLATES = ("a:{0[a]}, b:{0[b]}", "a:{a}, b:{b}", "a:%(a)s, b:%(b)s")
