@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import logging
 import sys
 
@@ -168,7 +169,9 @@ def test_preserve_subclasses(caplog, monkeypatch):
         pass
 
     monkeypatch.setattr("logging._loggerClass", MyLogger)
-    monkeypatch.setattr("logging._logRecordFactory", MyLogRecord)
+    if sys.version_info >= (3, 2):
+        # doesn't exist until 3.2
+        monkeypatch.setattr("logging._logRecordFactory", MyLogRecord)
 
     l = bracelogger.get_logger("logger8")
     assert isinstance(l, MyLogger)
@@ -190,11 +193,13 @@ def test_preserve_subclasses(caplog, monkeypatch):
         record_std, record_brace = record_brace, record_std
 
     assert isinstance(record_std, logging.LogRecord)
-    assert isinstance(record_std, MyLogRecord)
+    if sys.version_info >= (3, 2):
+        assert isinstance(record_std, MyLogRecord)
     assert not isinstance(record_std, bracelogger.BracelogRecordMixin)
 
     assert isinstance(record_brace, logging.LogRecord)
-    assert isinstance(record_brace, MyLogRecord)
+    if sys.version_info >= (3, 2):
+        assert isinstance(record_brace, MyLogRecord)
     assert isinstance(record_brace, bracelogger.BracelogRecordMixin)
 
 

@@ -14,11 +14,11 @@ _class_cache = {}
 
 def _make_class(name, mixin, type_):
     if type_ not in _class_cache:
-        _class_cache[type_] = type(name, (mixin, *type_.__mro__), {})
+        _class_cache[type_] = type(name, (mixin,) + type_.__mro__, {})
     return _class_cache[type_]
 
 
-class BracelogRecordMixin:
+class BracelogRecordMixin(object):
 
     def getMessage(record):
         """Implement logging.LogRecord.getMessage using brace-style string formatting"""
@@ -41,7 +41,7 @@ class BracelogRecordMixin:
         return msg
 
 
-class BraceloggerMixin:
+class BraceloggerMixin(object):
     """A logger wrapper that causes all handled LogRecords to use brace-style formatting"""
 
     __log_functions__ = {"debug", "info", "warn", "warning", "error", "exception", "critical", "fatal"}
@@ -51,12 +51,12 @@ class BraceloggerMixin:
 
     def __getattribute__(self, key):
         if key in type(self).__log_functions__ or key in {"_log", "_wrapped", "log", "handle", "getChild"}:
-            return super().__getattribute__(key)
+            return super(BraceloggerMixin, self).__getattribute__(key)
         return getattr(self._wrapped, key)
 
     def __setattr__(self, key, val):
         if key == "_wrapped":
-            return super().__setattr__(key, val)
+            return super(BraceloggerMixin, self).__setattr__(key, val)
         return setattr(self._wrapped, key, val)
 
     def __delattr__(self, key):
@@ -64,7 +64,7 @@ class BraceloggerMixin:
 
     def handle(self, record):
         record.__class__ = _make_class("BracelogRecord", BracelogRecordMixin, type(record))
-        return super().handle(record)
+        return super(BraceloggerMixin, self).handle(record)
 
     def getChild(self, suffix):
         """Get a Bracelogger which is a descendant to this one"""
