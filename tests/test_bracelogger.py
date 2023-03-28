@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import pytest
-
 import logging
+
 from bracelogger import get_logger
+
+import pytest
 
 
 class _Obj:
@@ -69,22 +70,22 @@ def test_no_other_loggers(caplog):
 
     std_l = logging.getLogger("logger3")
     l = get_logger("logger4")
+    sub_l = logging.getLogger("logger4.sublogger")
 
     std_l.info("%s %s", 1, 2)
     l.info("{} {}", 1, 2)
+    sub_l.info("%s %s", 1, 2)
 
-    assert len(caplog.records) == 2
-    std_record, record = caplog.records
-    if std_record.name == "logger4":
-        std_record, record = record, std_record
+    assert len(caplog.records) == 3
+    std_record, record, sub_record = (
+        next(x for x in caplog.records if x.name == n)
+        for n in ("logger3", "logger4", "logger4.sublogger")
+    )
 
-    assert std_record.name == "logger3"
-    assert record.name == "logger4"
-
-    assert std_record.args == record.args
+    assert std_record.args == record.args == sub_record.args
     assert isinstance(record.args, tuple)
     assert len(record.args) == 2
 
-    assert std_record.msg == "%s %s"
+    assert std_record.msg == sub_record.msg == "%s %s"
     assert record.msg == "{} {}"
-    assert std_record.message == record.message == "1 2"
+    assert std_record.message == record.message == sub_record.message == "1 2"
