@@ -2,7 +2,7 @@
 
 import logging
 
-from bracelogger import get_logger
+import bracelogger
 
 import pytest
 
@@ -20,7 +20,7 @@ def test_simple_message(caplog):
     """Test a reasonable approximation of the example in the readme"""
     caplog.set_level(logging.WARNING)
 
-    __log__ = get_logger("logger1")
+    __log__ = bracelogger.get_logger("logger1")
     some_obj = _Obj("testname", "/test/path")
 
     try:
@@ -47,7 +47,7 @@ def test_dict_special_case(caplog):
     """Test the dict special case in the stdlib logger is handled properly"""
     caplog.set_level(logging.INFO)
 
-    l = get_logger("logger2")
+    l = bracelogger.get_logger("logger2")
     data = {"a": 1, "b": 2}
 
     # test index-based and key-based formatting
@@ -69,7 +69,7 @@ def test_no_other_loggers(caplog):
     caplog.set_level(logging.INFO)
 
     std_l = logging.getLogger("logger3")
-    l = get_logger("logger4")
+    l = bracelogger.get_logger("logger4")
     sub_l = logging.getLogger("logger4.sublogger")
 
     std_l.info("%s %s", 1, 2)
@@ -89,3 +89,28 @@ def test_no_other_loggers(caplog):
     assert std_record.msg == sub_record.msg == "%s %s"
     assert record.msg == "{} {}"
     assert std_record.message == record.message == sub_record.message == "1 2"
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_all_levels(caplog):
+    """Test logging at all documented levels"""
+
+    LEVELS = ("debug", "info", "warn", "warning", "error", "exception", "critical", "fatal")
+    TEMPLATE = "This is a {}-level log"
+
+    caplog.set_level(1)  # capture everything
+    l = bracelogger.get_logger("logger5")
+
+    for level in LEVELS:
+        getattr(l, level)(TEMPLATE, level)
+
+    assert len(caplog.records) == len(LEVELS)
+    for x in caplog.records:
+        assert x.name == "logger5"
+        assert isinstance(x.args, tuple)
+        assert len(x.args) == 1
+
+    for level in LEVELS:
+        record = next(x for x in caplog.records if x.args[0] == level)
+        assert record.msg == TEMPLATE
+        assert record.message == TEMPLATE.format(*record.args)
