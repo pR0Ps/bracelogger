@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - master
+  # Run it every month to make sure it still works
+  schedule:
+   - cron:  '0 0 1 * *'
 jobs:
   build:
     name: tests
@@ -16,59 +19,23 @@ jobs:
           - macos-latest
           - windows-latest
         python-version:
-          - "2.7"
-          - "3.0"
-          - "3.1"
-          - "3.2"
-          - "3.3"
-          # coverage (used by pytest-cov) fails to install on 3.4 (setup.py contains an f-string)
-          #- "3.4"
-          - "3.5"
-          - "3.6"
-          - "3.7"
           - "3.8"
           - "3.9"
           - "3.10"
           - "3.11"
-          - "3.12-dev"
+          - "3.12"
+          - "3.13-dev"
           - "pypy2.7"
-          - "pypy3.6"
-          - "pypy3.7"
           - "pypy3.8"
           - "pypy3.9"
-        exclude:
-          # https://foss.heptapod.net/pypy/pypy/-/issues/3314
-          - os: macos-latest
-            python-version: "pypy3.6"
-          # PyPy v3.6 not available on Windows
-          - os: windows-latest
-            python-version: "pypy3.6"
-          # 3.5 and 3.6 no longer available on ubuntu-latest
-          - os: ubuntu-latest
-            python-version: "3.5"
-          - os: ubuntu-latest
-            python-version: "3.6"
-        # Python v3.0-v3.3 can only be installed on Windows
-          - python-version: "3.0"
-          - python-version: "3.1"
-          - python-version: "3.2"
-          - python-version: "3.3"
-        include:
-          - os: windows-latest
-            python-version: "3.0"
-          - os: windows-latest
-            python-version: "3.1"
-          - os: windows-latest
-            python-version: "3.2"
-          - os: windows-latest
-            python-version: "3.3"
+          - "pypy3.10"
       fail-fast: false
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python v${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 

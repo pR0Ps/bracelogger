@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import logging
+import sys
 
 import bracelogger
 
@@ -95,7 +96,10 @@ def test_no_other_loggers(caplog):
 def test_all_levels(caplog):
     """Test logging at all documented levels"""
 
-    LEVELS = ("debug", "info", "warn", "warning", "error", "exception", "critical", "fatal")
+    LEVELS = ["debug", "info", "warn", "warning", "error", "exception", "critical", "fatal"]
+    if sys.version_info >= (3, 13):
+        LEVELS.remove("warn")  # has been deprecated since 3.1, finally removed in v3.13
+
     TEMPLATE = "This is a {}-level log"
 
     caplog.set_level(1)  # capture everything
