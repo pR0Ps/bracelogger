@@ -10,9 +10,15 @@ except ImportError:  # pragma: no cover
     from collections import Mapping
 
 
-_class_cache = {}
+_BLPROXY_LOCAL = {
+    "_log", "_wrapped", "log", "makeRecord", "getChild",
+    "debug", "info", "warn", "warning", "error", "exception", "critical", "fatal",
+}
 
+
+_class_cache = {}
 def _make_class(name, mixin, type_):
+    """Dynamically create a class or pull it from the cache"""
     if type_ not in _class_cache:
         _class_cache[type_] = type(name, (mixin,) + type_.__mro__, {})
     return _class_cache[type_]
@@ -42,15 +48,14 @@ class BracelogRecordMixin(object):
 
 
 class BraceloggerMixin(object):
-    """A logger wrapper that causes all handled LogRecords to use brace-style formatting"""
-
-    __log_functions__ = {"debug", "info", "warn", "warning", "error", "exception", "critical", "fatal"}
+    """A proxy to a logging.Logger instance that causes all handled LogRecords
+    to use brace-style message formatting"""
 
     def __init__(self, logger):
         self._wrapped = logger
 
     def __getattribute__(self, key):
-        if key in type(self).__log_functions__ or key in {"_log", "_wrapped", "log", "handle", "getChild"}:
+        if key in _BLPROXY_LOCAL:
             return super(BraceloggerMixin, self).__getattribute__(key)
         return getattr(self._wrapped, key)
 
@@ -62,9 +67,11 @@ class BraceloggerMixin(object):
     def __delattr__(self, key):
         return delattr(self._wrapped, key)
 
-    def handle(self, record):
+    def makeRecord(self, *args, **kwargs):
+        """Create a BracelogRecord"""
+        record = self._wrapped.makeRecord(*args, **kwargs)
         record.__class__ = _make_class("BracelogRecord", BracelogRecordMixin, type(record))
-        return super(BraceloggerMixin, self).handle(record)
+        return record
 
     def getChild(self, suffix):
         """Get a Bracelogger which is a descendant to this one"""
@@ -74,4 +81,6 @@ class BraceloggerMixin(object):
 
 def get_logger(name=None):
     logger = logging.getLogger(name)
+
+    # Create a new subclass of the existing logger class so introspection works
     return _make_class("Bracelogger", BraceloggerMixin, type(logger))(logger)
