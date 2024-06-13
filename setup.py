@@ -14,7 +14,7 @@ except Exception:
 
 setup(
     name="bracelogger",
-    version="1.1.0",
+    version="1.1.1",
     description="Use brace-style string formatting in log messages",
     long_description=long_description,
     long_description_content_type="text/markdown",
