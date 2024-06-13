@@ -4,7 +4,6 @@
 
 import functools
 import logging
-import types
 
 try:
     from collections.abc import Mapping

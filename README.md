@@ -7,7 +7,7 @@ bracelogger
 A Python library that enables using the brace-style string formatting in log messages.
 
 Features:
- - Supports a wide range of Python versions (v2.7 - v3.12)
+ - Supports a wide range of Python versions (v2.7 - v3.13)
  - No dependencies
  - Easy to use - no special syntax required
  - Easy to transition to from stdlib logging - just change the `logging.getLogger` calls and message
