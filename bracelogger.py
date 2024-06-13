@@ -34,11 +34,11 @@ def _get_message(record):
 
 
 def _handle_wrap(fcn):
-    """Wrap logging.Handler.handle to use _getMessage"""
+    """Wrap logging.Handler.handle to use _get_message"""
 
     @functools.wraps(fcn)
     def handle(record):
-        record.getMessage = types.MethodType(_get_message, record)
+        record.getMessage = functools.partial(_get_message, record)
         return fcn(record)
 
     return handle

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import logging
+import pickle
 import sys
 
 import bracelogger
@@ -118,3 +119,25 @@ def test_all_levels(caplog):
         record = next(x for x in caplog.records if x.args[0] == level)
         assert record.msg == TEMPLATE
         assert record.message == TEMPLATE.format(*record.args)
+
+
+def test_pickle_logrecord(caplog):
+    """Test that the modified LogRecords can be [de]serialized using the pickle module"""
+    caplog.set_level(logging.INFO)
+
+    bl = bracelogger.get_logger("logger6")
+    sl = logging.getLogger("logger7")
+
+    data = {"a": 1, "b": 2}
+    TEMPLATES = ("a:{0[a]}, b:{0[b]}", "a:{a}, b:{b}", "a:%(a)s, b:%(b)s")
+
+    bl.info(TEMPLATES[0], data)
+    bl.info(TEMPLATES[1], data)
+    sl.info(TEMPLATES[2], data)
+
+    for r, tmpl in zip(caplog.records, TEMPLATES):
+        new = pickle.loads(pickle.dumps(r))
+        assert new.levelno == r.levelno == logging.INFO
+        assert new.args == r.args == data
+        assert new.msg == r.msg == tmpl
+        assert new.getMessage() == new.message == r.getMessage() == r.message == "a:1, b:2"
