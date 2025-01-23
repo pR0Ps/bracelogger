@@ -22,7 +22,7 @@ setup(
     project_urls={
         "Source": "https://github.com/pR0Ps/bracelogger",
     },
-    license="LGPLv3",
+    license="LGPL-3.0-only",
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
