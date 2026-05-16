@@ -1,6 +1,6 @@
 [project]
 name = "bracelogger"
-version = "1.1.1"
+version = "1.1.2"
 description = "Use brace-style string formatting in log messages"
 urls = { repository = "https://github.com/pR0Ps/bracelogger" }
 readme = "README.md"
